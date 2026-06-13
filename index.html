@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚗💨 꼬마 엔진의 4행정 탐험대!</title>
+    <!-- 구글 폰트 적용 -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ffd166;
+            --secondary-color: #06d6a0;
+            --danger-color: #ef476f;
+            --info-color: #118ab2;
+            --dark-color: #073b4c;
+            --bg-color: #fcfaf2;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Nanum Gothic', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--dark-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Jua', sans-serif;
+            margin: 0;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            background: #fff;
+            padding: 15px 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 0 #e6dfc7;
+            border: 3px solid var(--dark-color);
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        header h1 {
+            color: var(--dark-color);
+            font-size: 2.2rem;
+            text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(0,0,0,0.1);
+        }
+
+        header p {
+            margin: 8px 0 0 0;
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 25px;
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        @media (max-width: 850px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 왼쪽: 시각화 카드 */
+        .visual-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            border: 4px solid var(--dark-color);
+            box-shadow: 0 10px 0 #dbd3ba;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 오른쪽: 학습 대시보드 */
+        .info-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            border: 4px solid var(--dark-color);
+            box-shadow: 0 10px 0 #dbd3ba;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            font-family: 'Jua', sans-serif;
+            font-size: 1.15rem;
+            padding: 12px 18px;
+            border-radius: 15px;
+            border: 3px solid var(--dark-color);
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 5px 0 var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 var(--dark-color);
+        }
+
+        .btn-intake { background-color: #a2d2ff; color: #000; }
+        .btn-compress { background-color: #ffd166; color: #000; }
+        .btn-power { background-color: #ff85a2; color: #000; }
+        .btn-exhaust { background-color: #b0c4de; color: #000; }
+
+        .btn-play { background-color: var(--secondary-color); color: #fff; }
+        .btn-pause { background-color: var(--danger-color); color: #fff; }
+
+        .btn.active {
+            border-color: #ff0000;
+            box-shadow: 0 2px 0 #000;
+            transform: translateY(3px);
+            outline: 3px dashed #ff4081;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0 15px 0;
+            background: #f0edf5;
+            padding: 8px 15px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .speed-control label {
+            font-family: 'Nanum Gothic', sans-serif;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .speed-control input[type=range] {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+
+        /* SVG 라벨 전용 스타일 (속도 조절 폰트 스펙보다 약 15% 크게 개선) */
+        .svg-label {
+            font-family: 'Nanum Gothic', sans-serif;
+            font-weight: bold;
+            font-size: 16.5px; 
+            fill: var(--dark-color);
+        }
+
+        .engine-svg-container {
+            width: 100%;
+            max-width: 340px;
+            height: 410px;
+            background: #fff;
+            border-radius: 15px;
+        }
+
+        /* 텍스트 정보 레이아웃 */
+        .status-title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px dashed #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .description-box {
+            background-color: #f7f9fc;
+            border-radius: 15px;
+            padding: 15px;
+            border-left: 6px solid var(--info-color);
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        /* 피스톤과 크랭크축 역할 강조 박스 */
+        .highlight-card {
+            background: #fff3cd;
+            border: 3px solid #ffc107;
+            border-radius: 18px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 0 #ffeeba;
+        }
+
+        .highlight-card h4 {
+            color: #856404;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .highlight-card p {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #533f03;
+        }
+
+        .parts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .part-card {
+            background: #fff;
+            border: 3px solid var(--dark-color);
+            border-radius: 15px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 0 #eee;
+        }
+
+        .part-card h4 {
+            font-family: 'Jua', sans-serif;
+            margin: 0 0 5px 0;
+            font-size: 1.05rem;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .part-status {
+            font-family: 'Jua', sans-serif;
+            font-size: 1.15rem;
+            margin: auto 0 0 0;
+            padding: 5px 10px;
+            border-radius: 10px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .status-open { background-color: #d8f3dc; color: #1b4332; border: 2px solid #52b788; }
+        .status-closed { background-color: #fec5bb; color: #7209b7; border: 2px solid #f07167; }
+        .status-down { background-color: #caf0f8; color: #03045e; border: 2px solid #90e0ef; }
+        .status-up { background-color: #fde2e4; color: #5c0d12; border: 2px solid #ffb3c1; }
+        .status-rotate { background-color: #e2e2e2; color: #333333; border: 2px solid #b5b5b5; }
+
+        .footer-definition {
+            margin-top: 15px;
+            background-color: #f1f3f5;
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🚗💨 꼬마 엔진의 4행정 탐험대!</h1>
+        <p>각 행정 단계를 클릭하면 피스톤이 알맞게 위아래로 움직이며 작동 상태를 직접 보여줍니다!</p>
+    </header>
+
+    <div class="container">
+        <!-- 왼쪽 카드: 엔진 비주얼 시각화 영역 -->
+        <div class="visual-card">
+            <h3 style="font-family:'Jua', sans-serif; margin-bottom: 10px;">🛠️ 실시간 엔진 모형</h3>
+            
+            <div class="controls">
+                <button class="btn btn-play" id="playBtn" onclick="togglePlay()">⚡ 전체 자동재생</button>
+            </div>
+
+            <div class="speed-control">
+                <label for="speedSlider">속도 조절 🐇</label>
+                <input type="range" id="speedSlider" min="0.5" max="3" step="0.1" value="1" onchange="updateSpeed()">
+            </div>
+
+            <!-- SVG 동적 엔진 렌더링 영역 -->
+            <div class="engine-svg-container">
+                <svg id="engine-svg" viewBox="0 0 300 410" width="100%" height="100%">
+                    
+                    <!-- 정적 텍스트 라벨 영역 (드로잉 간 겹치지 않도록 최상단 고정 배치) -->
+                    <g id="label-intake" style="display: none;">
+                        <text x="150" y="24" class="svg-label" text-anchor="middle">신선한 혼합기 유입 중 🫧</text>
+                    </g>
+                    <g id="label-compress" style="display: none;">
+                        <text x="150" y="24" class="svg-label" text-anchor="middle">가스 압축 중! ✊</text>
+                    </g>
+                    <g id="label-power" style="display: none;">
+                        <text x="150" y="24" class="svg-label" text-anchor="middle">가스 폭발! 🔥</text>
+                    </g>
+                    <g id="label-exhaust" style="display: none;">
+                        <text x="150" y="24" class="svg-label" text-anchor="middle">배기가스 배출 중 💨</text>
+                    </g>
+
+                    <!-- 드로잉 코어 (글자 겹침을 방지하기 위해 전체 그래픽을 아래로 25px 이동) -->
+                    <g transform="translate(0, 25)">
+                        <!-- 실린더 외부 벽면 -->
+                        <rect x="75" y="55" width="150" height="185" fill="#eceff1" stroke="#37474f" stroke-width="6" rx="10" />
+                        
+                        <!-- 실린더 내부 연소실 (상태에 따라 배경색 변경됨) -->
+                        <rect id="chamber-bg" x="81" y="61" width="138" height="173" fill="#ffffff" />
+
+                        <!-- [흡입] 가스 혼합기 유입 비주얼 (파란 방울들이 통로 따라 실시간으로 흐름) -->
+                        <g id="visual-intake" style="display: none;">
+                            <circle id="intake-p1" r="7.5" fill="#42a5f5" />
+                            <circle id="intake-p2" r="6.5" fill="#90caf9" />
+                            <circle id="intake-p3" r="8" fill="#42a5f5" />
+                        </g>
+
+                        <!-- [압축] 점진적으로 납작해지는 가스 비주얼 (원형 ➔ 타원형 동적 모핑) -->
+                        <g id="visual-compress" style="display: none;">
+                            <ellipse id="compress-ellipse" fill="#ffe082" stroke="#ffb300" stroke-width="2" />
+                        </g>
+
+                        <!-- [폭발] 화려하게 번쩍이며 순간 팽창하는 폭발 비주얼 (스케일 업 애니메이션) -->
+                        <g id="visual-power" style="display: none;">
+                            <g id="power-explosion-group">
+                                <path d="M150,60 L165,80 L195,70 L180,95 L210,105 L175,115 L185,140 L150,120 L115,140 L125,115 L90,105 L120,95 L105,70 L135,80 Z" fill="#ff5722" stroke="#e64a19" stroke-width="3" />
+                                <text x="150" y="112" font-family="Jua" font-size="20" fill="#fff" text-anchor="middle">💥 쾅!!</text>
+                            </g>
+                        </g>
+
+                        <!-- [배기] 힘없고 멍한 배기가스 비주얼 (우측 배출 통로로 실시간 이동) -->
+                        <g id="visual-exhaust" style="display: none;">
+                            <circle id="exhaust-p1" r="7.5" fill="#90a4ae" />
+                            <circle id="exhaust-p2" r="6.5" fill="#b0bec5" />
+                            <circle id="exhaust-p3" r="8" fill="#90a4ae" />
+                        </g>
+
+                        <!-- 점화 플러그 -->
+                        <rect x="140" y="25" width="20" height="31" fill="#cfd8dc" stroke="#263238" stroke-width="3" rx="2" />
+                        <line x1="150" y1="56" x2="150" y2="62" stroke="#263238" stroke-width="4" />
+                        <!-- 불꽃 이펙트 -->
+                        <polygon id="spark-plug" points="150,62 142,75 149,70 150,78 152,70 158,75" fill="#ffd166" stroke="#ef476f" stroke-width="1.5" style="display: none;" />
+
+                        <!-- 흡입 통로 (좌측) -->
+                        <path d="M35,35 C65,35 81,42 81,65" fill="none" stroke="#90caf9" stroke-width="14" stroke-linecap="round" />
+                        <g id="valve-intake" style="transition: transform 0.1s ease-out;">
+                            <line x1="110" y1="10" x2="110" y2="61" stroke="#37474f" stroke-width="4" />
+                            <polygon points="98,61 122,61 118,55 102,55" fill="#37474f" />
+                        </g>
+
+                        <!-- 배기 통로 (우측) -->
+                        <path d="M265,35 C235,35 219,42 219,65" fill="none" stroke="#b0bec5" stroke-width="14" stroke-linecap="round" />
+                        <g id="valve-exhaust" style="transition: transform 0.1s ease-out;">
+                            <line x1="190" y1="10" x2="190" y2="61" stroke="#37474f" stroke-width="4" />
+                            <polygon points="178,61 202,61 198,55 182,55" fill="#37474f" />
+                        </g>
+
+                        <!-- 피스톤 그룹 (상하 피스톤 이동) -->
+                        <g id="piston-group" style="transition: transform 0.1s ease-out;">
+                            <!-- 피스톤 메인 금속 바디 -->
+                            <rect x="83" y="100" width="134" height="45" fill="#b0bec5" stroke="#37474f" stroke-width="3" rx="4" />
+                            <circle cx="125" cy="120" r="4" fill="#37474f" />
+                            <circle cx="175" cy="120" r="4" fill="#37474f" />
+                            <path id="piston-mouth" d="M145,128 Q150,133 155,128" fill="none" stroke="#37474f" stroke-width="2.5" stroke-linecap="round" />
+                            <circle cx="118" cy="124" r="5" fill="#ff85a2" opacity="0.6" />
+                            <circle cx="182" cy="124" r="5" fill="#ff85a2" opacity="0.6" />
+                            <circle cx="150" cy="132" r="10" fill="#cfd8dc" stroke="#37474f" stroke-width="2.5" />
+                        </g>
+
+                        <!-- 커넥팅 로드 -->
+                        <line id="connecting-rod" x1="150" y1="132" x2="150" y2="280" stroke="#78909c" stroke-width="10" stroke-linecap="round" style="transition: all 0.1s ease-out;" />
+                        <circle id="joint-piston-pin" cx="150" cy="132" r="4" fill="#ffffff" style="transition: all 0.1s ease-out;" />
+
+                        <!-- 크랭크축 회전 원판 -->
+                        <g id="crankshaft-disc" transform="translate(150, 290)">
+                            <circle cx="0" cy="0" r="40" fill="#90a4ae" stroke="#37474f" stroke-width="3.5" />
+                            <circle cx="0" cy="0" r="10" fill="#37474f" />
+                            <circle id="crank-pin" cx="0" cy="-25" r="9" fill="#ff9800" stroke="#37474f" stroke-width="2" />
+                            <line x1="0" y1="0" x2="0" y2="-25" stroke="#37474f" stroke-width="4" />
+                        </g>
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+        <!-- 오른쪽 카드: 정보 보드 및 설명 영역 -->
+        <div class="info-card">
+            <div>
+                <!-- 단계 선택 탭 버튼 -->
+                <div class="controls" style="margin-bottom: 15px;">
+                    <button class="btn btn-intake" id="tab0" onclick="clickStrokeTab(0)">1. 흡입 🟦</button>
+                    <button class="btn btn-compress" id="tab1" onclick="clickStrokeTab(1)">2. 압축 🟧</button>
+                    <button class="btn btn-power" id="tab2" onclick="clickStrokeTab(2)">3. 폭발 🟥</button>
+                    <button class="btn btn-exhaust" id="tab3" onclick="clickStrokeTab(3)">4. 배기 ⬛</button>
+                </div>
+
+                <h2 class="status-title" id="strokeTitle">🎨 로딩 중...</h2>
+                
+                <div class="description-box" id="strokeDesc">
+                    각 단계를 눌러 상세 설명을 확인해보세요!
+                </div>
+
+                <!-- 피스톤과 크랭크축 역할 강조 보드 -->
+                <div class="highlight-card">
+                    <h4>💡 피스톤과 크랭크축의 환상의 짝꿍 작전!</h4>
+                    <p>
+                        연소실에서 일어난 가스의 힘으로 <strong>피스톤이 수직 위아래로 힘차게 달리는 힘(왕복 직선 운동)</strong>을 만들어내면, 이 피스톤에 매달린 <strong>크랭크축이 그 힘을 낚아채 둥글게 회전(회전 운동)</strong>시킵니다! 이 원리로 자동차 바퀴가 마침내 팽팽 굴러가게 됩니다.
+                    </p>
+                </div>
+
+                <!-- 부품 상태 상세 요약 정보 (밸브 카드를 우선 노출되도록 조정) -->
+                <h3 style="font-family:'Jua', sans-serif; margin-bottom: 12px; font-size: 1.15rem;">🔍 이 단계에서의 부품 상태</h3>
+                <div class="parts-grid">
+                    <div class="part-card">
+                        <h4>🚪 흡입밸브</h4>
+                        <span class="part-status" id="intakeStatus">-</span>
+                    </div>
+                    <div class="part-card">
+                        <h4>🚪 배기밸브</h4>
+                        <span class="part-status" id="exhaustStatus">-</span>
+                    </div>
+                    <div class="part-card focus-piston">
+                        <h4>⚙️ 피스톤 (직선 ↕️)</h4>
+                        <span class="part-status" id="pistonStatus">-</span>
+                    </div>
+                    <div class="part-card focus-crank">
+                        <h4>🌀 크랭크축 (회전 🔄)</h4>
+                        <span class="part-status" id="crankStatus">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 하단 정보 -->
+            <div class="footer-definition">
+                <span>피스톤의 <strong>왕복 직선 운동</strong> ➔ 크랭크축의 <strong>회전 운동</strong> 전환이 동력의 핵심 원리예요!</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 4행정에 관한 상세 정보 데이터 테이블
+        const strokes = [
+            {
+                name: "① 흡입 행정 (Intake)",
+                emoji: "🟦",
+                desc: "피스톤이 <strong>아래로</strong> 힘차게 하강하면 실린더 안에 넓은 빈 공간이 생겨요! 이때 왼쪽 흡입밸브가 활짝 열리며 파란색 신선한 <strong>연료와 공기 혼합기(🫧)</strong>가 연소실로 쏟아져 들어옵니다.",
+                intake: "열림 🟢",
+                intakeClass: "status-open",
+                exhaust: "닫힘 🔴",
+                exhaustClass: "status-closed",
+                piston: "아래로 이동 👇",
+                pistonClass: "status-down",
+                crank: "0° ➔ 180° 회전 🔄",
+                crankClass: "status-rotate",
+                face: "M142,128 Q150,135 158,128", // 웃는 표정
+                bgColor: "#e3f2fd"
+            },
+            {
+                name: "② 압축 행정 (Compression)",
+                emoji: "🟧",
+                desc: "두 밸브가 빈틈없이 완전히 잠깁니다. 피스톤이 강하게 <strong>위로</strong> 밀고 올라오면서 연소실 안의 가스들을 꽁꽁 조여요! 가스가 점점 납작하게 찌그러지며 <strong>고온·고압의 가스 상태</strong>로 압축됩니다.",
+                intake: "닫힘 🔴",
+                intakeClass: "status-closed",
+                exhaust: "닫힘 🔴",
+                exhaustClass: "status-closed",
+                piston: "위로 이동 👆",
+                pistonClass: "status-up",
+                crank: "180° ➔ 360° 회전 🔄",
+                crankClass: "status-rotate",
+                face: "M142,128 Q150,120 158,128", // 집중하는 표정
+                bgColor: "#fff9c4"
+            },
+            {
+                name: "③ 폭발 행정 (Power / Explosion)",
+                emoji: "🟥",
+                desc: "점화 플러그가 불꽃을 탁! 튕겨 꾹 압축된 가스가 순식간에 <strong>💥 펑!! 하고 거대하게 폭발</strong>해요! 이 거센 팽창 압력으로 피스톤이 아주 빠르고 강력하게 <strong>아래로</strong> 밀려 하강하며 엔진 가동의 진짜 파워를 내뿜습니다.",
+                intake: "닫힘 🔴",
+                intakeClass: "status-closed",
+                exhaust: "닫힘 🔴",
+                exhaustClass: "status-closed",
+                piston: "강하게 아래로 👇💨",
+                pistonClass: "status-down",
+                crank: "360° ➔ 540° 회전 🔄",
+                crankClass: "status-rotate",
+                face: "M144,124 Q150,132 156,124", 
+                bgColor: "#ffcdd2"
+            },
+            {
+                name: "④ 배기 행정 (Exhaust)",
+                emoji: "⬛",
+                desc: "폭발로 힘이 빠진 채 잔류하는 배기가스들을 연소실 밖으로 치울 차례예요. 우측 배기밸브가 활짝 개방되고, 피스톤이 다시 <strong>위로</strong> 올라가 쓸모없어진 <strong>배출 가스(💨)</strong>들을 바깥으로 싹 쓸어서 내보냅니다.",
+                intake: "닫힘 🔴",
+                intakeClass: "status-closed",
+                exhaust: "열림 🟢",
+                exhaustClass: "status-open",
+                piston: "위로 이동 👆",
+                pistonClass: "status-up",
+                crank: "540° ➔ 720° (0°) 🔄",
+                crankClass: "status-rotate",
+                face: "M145,130 Q150,123 155,130", // 한숨
+                bgColor: "#cfd8dc"
+            }
+        ];
+
+        let currentStroke = 0;
+        let isPlaying = false;
+        let animFrameId = null;
+        let playSpeed = 1;
+        let currentAngle = 0; 
+
+        // 탭 전용 구동 변수 (단일 행정 애니메이션용)
+        let isStrokeAnimating = false;
+        let strokeStartAngle = 0;
+        let strokeEndAngle = 180;
+        let strokeAnimProgress = 0;
+
+        window.onload = function() {
+            setStroke(0);
+        };
+
+        // 수동 행정 설정 및 애니메이션 작동 개시
+        function clickStrokeTab(index) {
+            // 자동재생 상태 중단
+            if (isPlaying) {
+                togglePlay();
+            }
+
+            // 개별 행정의 움직임 영역 매칭
+            // 0: 0~180, 1: 180~360, 2: 360~540, 3: 540~720
+            strokeStartAngle = index * 180;
+            strokeEndAngle = (index + 1) * 180;
+            currentAngle = strokeStartAngle;
+            strokeAnimProgress = 0;
+            
+            isStrokeAnimating = true;
+            updateInfoUI(index);
+            runStrokeMovementAnimation();
+        }
+
+        // 탭 클릭 시 해당 행정 각도 영역 내에서 움직이는 애니메이션
+        function runStrokeMovementAnimation() {
+            if (!isStrokeAnimating) return;
+
+            // 서서히 다가가는 보간 애니메이션
+            strokeAnimProgress += 0.04; 
+            if (strokeAnimProgress >= 1.0) {
+                strokeAnimProgress = 1.0;
+                isStrokeAnimating = false;
+            }
+
+            // 부드러운 Ease-InOut 동작으로 상하/회전 움직임 전개
+            const t = Math.sin(strokeAnimProgress * Math.PI / 2); // Ease out 선형 곡선화
+            currentAngle = strokeStartAngle + (strokeEndAngle - strokeStartAngle) * t;
+
+            updateEngineGraphics(currentAngle);
+
+            if (isStrokeAnimating) {
+                requestAnimationFrame(runStrokeMovementAnimation);
+            }
+        }
+
+        // 전체 순환 재생 중이 아닐 때 개별 단계를 확정할 수 있는 정적 세팅
+        function setStroke(index) {
+            currentStroke = index;
+            currentAngle = index * 180 + 90; // 시연을 위한 중간 각도 설정
+            updateEngineGraphics(currentAngle);
+            updateInfoUI(index);
+        }
+
+        // 흡입 혼합기 방울의 유동적인 유입 위치를 계산하는 함수
+        function updateIntakeParticle(elem, p) {
+            let x, y;
+            if (p < 0.4) {
+                // 왼쪽 곡선 흡입 파이프 내부 통과 중
+                const t = p / 0.4;
+                x = 35 + t * 70;
+                y = 35 + t * 15;
+            } else {
+                // 열린 흡입 밸브 틈을 타고 연소실 내부로 유입/분산 낙하
+                const t = (p - 0.4) / 0.6;
+                x = 105 + t * 25;
+                y = 50 + t * 90;
+            }
+            elem.setAttribute("cx", x);
+            elem.setAttribute("cy", y);
+        }
+
+        // 배출 가스 방울의 배출 경로 위치를 계산하는 함수
+        function updateExhaustParticle(elem, p) {
+            let x, y;
+            if (p < 0.6) {
+                // 실린더 바닥에서부터 상승하여 배기 밸브 근처로 모임
+                const t = p / 0.6;
+                x = 150 + t * 40;
+                y = 155 - t * 105;
+            } else {
+                // 열린 배기 밸브를 통해 우측 흡입 파이프 바깥으로 배출
+                const t = (p - 0.6) / 0.4;
+                x = 190 + t * 70;
+                y = 50 - t * 15;
+            }
+            elem.setAttribute("cx", x);
+            elem.setAttribute("cy", y);
+        }
+
+        // 실시간 연동 그래픽 드로잉 루프 핵심
+        function updateEngineGraphics(angleDeg) {
+            const rad = (angleDeg * Math.PI) / 180;
+            const crankRadius = 25; 
+            const rodLength = 110;  
+
+            const crankDisc = document.getElementById("crankshaft-disc");
+            crankDisc.setAttribute("transform", `translate(150, 290) rotate(${angleDeg})`);
+
+            const crankPinX = 150 + crankRadius * Math.sin(rad);
+            const crankPinY = 290 - crankRadius * Math.cos(rad);
+
+            const dx = crankPinX - 150;
+            const dy = Math.sqrt(rodLength * rodLength - dx * dx);
+            const pistonPinY = crankPinY - dy;
+
+            const pistonGroup = document.getElementById("piston-group");
+            const pistonTranslationY = pistonPinY - 132;
+            pistonGroup.setAttribute("transform", `translate(0, ${pistonTranslationY})`);
+
+            const connRod = document.getElementById("connecting-rod");
+            connRod.setAttribute("x1", "150");
+            connRod.setAttribute("y1", pistonPinY);
+            connRod.setAttribute("x2", crankPinX);
+            connRod.setAttribute("y2", crankPinY);
+
+            const joint = document.getElementById("joint-piston-pin");
+            joint.setAttribute("cy", pistonPinY);
+
+            const cycleAngle = angleDeg % 720;
+
+            const valveIntake = document.getElementById("valve-intake");
+            const valveExhaust = document.getElementById("valve-exhaust");
+            const chamberBg = document.getElementById("chamber-bg");
+            const sparkPlug = document.getElementById("spark-plug");
+            const mouthPath = document.getElementById("piston-mouth");
+
+            // 모든 텍스트 라벨 초기화 숨김
+            document.getElementById("label-intake").style.display = "none";
+            document.getElementById("label-compress").style.display = "none";
+            document.getElementById("label-power").style.display = "none";
+            document.getElementById("label-exhaust").style.display = "none";
+
+            // 모든 가스 이펙트 초기화 숨김
+            document.getElementById("visual-intake").style.display = "none";
+            document.getElementById("visual-compress").style.display = "none";
+            document.getElementById("visual-power").style.display = "none";
+            document.getElementById("visual-exhaust").style.display = "none";
+
+            let strokeIdx = 0;
+
+            // ① 흡입 (0 ~ 180)
+            if (cycleAngle >= 0 && cycleAngle < 180) {
+                strokeIdx = 0;
+                const openAmt = Math.sin((cycleAngle / 180) * Math.PI) * 11;
+                valveIntake.setAttribute("transform", `translate(0, ${openAmt})`);
+                valveExhaust.setAttribute("transform", "translate(0, 0)");
+                
+                chamberBg.setAttribute("fill", strokes[0].bgColor);
+                document.getElementById("label-intake").style.display = "block";
+                document.getElementById("visual-intake").style.display = "block";
+                sparkPlug.style.display = "none";
+
+                // 가스 유동 파티클 위치 업데이트
+                const progress = cycleAngle / 180;
+                updateIntakeParticle(document.getElementById("intake-p1"), progress);
+                updateIntakeParticle(document.getElementById("intake-p2"), (progress + 0.33) % 1.0);
+                updateIntakeParticle(document.getElementById("intake-p3"), (progress + 0.66) % 1.0);
+            } 
+            // ② 압축 (180 ~ 360)
+            else if (cycleAngle >= 180 && cycleAngle < 360) {
+                strokeIdx = 1;
+                valveIntake.setAttribute("transform", "translate(0, 0)");
+                valveExhaust.setAttribute("transform", "translate(0, 0)");
+                
+                chamberBg.setAttribute("fill", strokes[1].bgColor);
+                document.getElementById("label-compress").style.display = "block";
+                document.getElementById("visual-compress").style.display = "block";
+                sparkPlug.style.display = "none";
+
+                // 원형에서 타원형으로 짜부러지는 실시간 기하 모핑 구현
+                const progress = (cycleAngle - 180) / 180;
+                const compressEllipse = document.getElementById("compress-ellipse");
+                
+                // 피스톤 헤드가 위로 올라옴에 맞춰 동적으로 타원 크기 squish
+                const cy = 155 - progress * 52;
+                const rx = 44 + progress * 16;
+                const ry = 44 - progress * 32;
+
+                compressEllipse.setAttribute("cx", "150");
+                compressEllipse.setAttribute("cy", cy);
+                compressEllipse.setAttribute("rx", rx);
+                compressEllipse.setAttribute("ry", ry);
+            } 
+            // ③ 폭발 (360 ~ 540)
+            else if (cycleAngle >= 360 && cycleAngle < 540) {
+                strokeIdx = 2;
+                valveIntake.setAttribute("transform", "translate(0, 0)");
+                valveExhaust.setAttribute("transform", "translate(0, 0)");
+                
+                chamberBg.setAttribute("fill", strokes[2].bgColor);
+                document.getElementById("label-power").style.display = "block";
+                document.getElementById("visual-power").style.display = "block";
+
+                // 폭발 "쾅!" 애니메이션 스케일 업 메커니즘
+                const progress = (cycleAngle - 360) / 180;
+                const explosionGroup = document.getElementById("power-explosion-group");
+                
+                let scale = 0;
+                if (progress < 0.22) {
+                    // 초반부에 엄청나게 빠른 속도로 쾅 터져서 커짐 (0.1 ➔ 1.35)
+                    scale = 0.1 + (progress / 0.22) * 1.25;
+                } else {
+                    // 피스톤이 밀려 내려감에 따라 가스 크기가 약간 잦아듦 (1.35 ➔ 0.8)
+                    scale = 1.35 - ((progress - 0.22) / 0.78) * 0.55;
+                }
+                
+                // 중심점(150, 100)을 기준으로 확장/축소 적용
+                explosionGroup.setAttribute("transform", `translate(150, 100) scale(${scale}) translate(-150, -100)`);
+
+                // 점화 타이밍 플래시
+                if (cycleAngle >= 360 && cycleAngle < 385) {
+                    sparkPlug.style.display = "block";
+                } else {
+                    sparkPlug.style.display = "none";
+                }
+            } 
+            // ④ 배기 (540 ~ 720)
+            else {
+                strokeIdx = 3;
+                valveIntake.setAttribute("transform", "translate(0, 0)");
+                const openAmt = Math.sin(((cycleAngle - 540) / 180) * Math.PI) * 11;
+                valveExhaust.setAttribute("transform", `translate(0, ${openAmt})`);
+                
+                chamberBg.setAttribute("fill", strokes[3].bgColor);
+                document.getElementById("label-exhaust").style.display = "block";
+                document.getElementById("visual-exhaust").style.display = "block";
+                sparkPlug.style.display = "none";
+
+                // 배기가스 분출 파티클 위치 업데이트
+                const progress = (cycleAngle - 540) / 180;
+                updateExhaustParticle(document.getElementById("exhaust-p1"), progress);
+                updateExhaustParticle(document.getElementById("exhaust-p2"), (progress + 0.33) % 1.0);
+                updateExhaustParticle(document.getElementById("exhaust-p3"), (progress + 0.66) % 1.0);
+            }
+
+            mouthPath.setAttribute("d", strokes[strokeIdx].face);
+
+            // 전체 자동순환 재생 상태 일치화
+            if (isPlaying && strokeIdx !== currentStroke) {
+                currentStroke = strokeIdx;
+                updateInfoUI(strokeIdx);
+            }
+        }
+
+        // 우측 패널 학습 설명 및 컴포넌트 정보 업데이트
+        function updateInfoUI(index) {
+            const data = strokes[index];
+            
+            document.getElementById("strokeTitle").innerHTML = `${data.emoji} ${data.name}`;
+            document.getElementById("strokeDesc").innerHTML = data.desc;
+
+            // 상세 컴포넌트 데이터 텍스트 기입
+            const intakeBadge = document.getElementById("intakeStatus");
+            intakeBadge.innerText = data.intake;
+            intakeBadge.className = `part-status ${data.intakeClass}`;
+
+            const exhaustBadge = document.getElementById("exhaustStatus");
+            exhaustBadge.innerText = data.exhaust;
+            exhaustBadge.className = `part-status ${data.exhaustClass}`;
+
+            const pistonBadge = document.getElementById("pistonStatus");
+            pistonBadge.innerText = data.piston;
+            pistonBadge.className = `part-status ${data.pistonClass}`;
+
+            const crankBadge = document.getElementById("crankStatus");
+            crankBadge.innerText = data.crank;
+            crankBadge.className = `part-status ${data.crankClass}`;
+
+            for (let i = 0; i < 4; i++) {
+                const tab = document.getElementById(`tab${i}`);
+                if (i === index) {
+                    tab.classList.add("active");
+                } else {
+                    tab.classList.remove("active");
+                }
+            }
+        }
+
+        // 자동순환 루프 제어
+        function animLoop() {
+            if (!isPlaying) return;
+            
+            currentAngle += 2.0 * playSpeed;
+            if (currentAngle >= 720) {
+                currentAngle = 0;
+            }
+
+            updateEngineGraphics(currentAngle);
+            animFrameId = requestAnimationFrame(animLoop);
+        }
+
+        // 전체 순환 재생 토글
+        function togglePlay() {
+            const btn = document.getElementById("playBtn");
+            if (isPlaying) {
+                isPlaying = false;
+                btn.innerText = "⚡ 전체 자동재생";
+                btn.className = "btn btn-play";
+                if (animFrameId) {
+                    cancelAnimationFrame(animFrameId);
+                }
+            } else {
+                isStrokeAnimating = false; // 진행 중이던 개별 탭 동작 스킵
+                isPlaying = true;
+                btn.innerText = "⏸️ 일시 정지";
+                btn.className = "btn btn-pause";
+                
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById(`tab${i}`).classList.remove("active");
+                }
+                animLoop();
+            }
+        }
+
+        function updateSpeed() {
+            const sliderValue = document.getElementById("speedSlider").value;
+            playSpeed = parseFloat(sliderValue);
+        }
+    </script>
+</body>
+</html>
